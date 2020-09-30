@@ -124,8 +124,8 @@ class CycleGAN(nn.Module):
         self.criterion_D = DiscriminatorLoss()
         self.criterion_C = nn.L1Loss()
 
-        self.optim_G = optim.Adam(itertools.chain(self.G_X.parameters(), self.G_Y.parameters()), lr, beta=[0.5, 0.999])
-        self.optim_Y = optim.Adam(itertools.chain(self.D_X.parameters(), self.D_Y.parameters()), lr, beta=[0.5, 0.999])
+        self.optim_G = optim.Adam(itertools.chain(self.G_X.parameters(), self.G_Y.parameters()), lr, betas=[0.5, 0.999])
+        self.optim_D = optim.Adam(itertools.chain(self.D_X.parameters(), self.D_Y.parameters()), lr, betas=[0.5, 0.999])
         
         self.cycle_weight = cycle_weight
 
