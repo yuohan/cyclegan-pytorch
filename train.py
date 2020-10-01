@@ -1,4 +1,5 @@
 from tqdm.auto import tqdm
+import argparse
 import torch
 
 from datasets import PairLoader
@@ -6,19 +7,22 @@ from models import CycleGAN
 
 if __name__ == '__main__':
 
-    dir_X = './monet2photo/trainB'
-    dir_Y = './monet2photo/trainA'
-    image_size = 256
-    batch_size = 1
-    image_channels = 3
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dir_X', type=str, required=True)
+    parser.add_argument('--dir_Y', type=str, required=True)
+    parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--batch', type=int, default=1)
+    parser.add_argument('--image_size', type=int, default=256)
+    parser.add_argument('--channels', type=int, default=3)
+
+    args = parser.parse_args()
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    epochs = 5
 
-    dataloader = PairLoader(dir_X, dir_Y, image_size, batch_size)
-    model = CycleGAN(image_channels, image_channels).to(device)
+    dataloader = PairLoader(args.dir_X, args.dir_Y, args.image_size, args.batch)
+    model = CycleGAN(args.channels, args.channels).to(device)
 
-    for epoch in range(epochs):
+    for epoch in range(args.epochs):
 
         ep_loss_G, ep_loss_D = 0, 0
         for image_X, image_Y in tqdm(dataloader, leave=False):
