@@ -111,7 +111,7 @@ class DiscriminatorLoss(nn.Module):
 class CycleGAN(nn.Module):
     """ Cycle GAN 
     """
-    def __init__(self, in_channels, out_channels, conv_dim=64, lr=2e-4, cycle_weight=10):
+    def __init__(self, in_channels, out_channels, conv_dim=64, lr=2e-4, cycle_weight=10, idt_weight=5):
         super(CycleGAN, self).__init__()
 
         self.G_X = Generator(in_channels, out_channels, conv_dim)
@@ -128,6 +128,7 @@ class CycleGAN(nn.Module):
         self.optim_D = optim.Adam(itertools.chain(self.D_X.parameters(), self.D_Y.parameters()), lr, betas=[0.5, 0.999])
         
         self.cycle_weight = cycle_weight
+        self.idt_weight = idt_weight
 
     def train(self, real_X, real_Y):
 
@@ -136,6 +137,9 @@ class CycleGAN(nn.Module):
 
         cycle_X = self.G_Y(fake_Y) # G_Y(G_X(X))
         cycle_Y = self.G_X(fake_X) # G_X(G_Y(Y))
+
+        idt_X = self.G_X(real_Y) # G_X(Y)
+        idt_Y = self.G_Y(real_X) # G_Y(X)
 
         # Loss = L_gen(G, D_Y, X, Y) + L_gen(F, D_X, Y, X) + lambda * L_cyc(G, F)
         # L_gen(G, D, X, Y) = E[logD(y)] + E[1-logD(G(x))]
@@ -150,9 +154,11 @@ class CycleGAN(nn.Module):
         # maximize log(D(G(x))) instead of log(1-D(G(x)))
         G_X_loss = self.criterion_G(self.D_X(fake_Y))
         G_Y_loss = self.criterion_G(self.D_Y(fake_X))
-        # Cycle loss ||G_B(G_A(A)) - A|| + ||G_A(G_B(B)) - B||
+        # Cycle loss ||G_Y(G_X(X)) - X|| + ||G_X(G_Y(Y)) - Y||
         cycle_loss = self.criterion_C(cycle_X, real_X) + self.criterion_C(cycle_Y, real_Y)
-        G_loss = G_X_loss + G_Y_loss + self.cycle_weight*cycle_loss
+        # Identity loss ||G_X(Y) - Y|| + ||G_Y(X) - X||
+        idt_loss = self.criterion_C(idt_X, real_Y) + self.criterion_C(idt_Y, real_X)
+        G_loss = G_X_loss + G_Y_loss + self.cycle_weight*cycle_loss + self.idt_weight*idt_loss
         G_loss.backward()
         self.optim_G.step()
 
