@@ -89,10 +89,13 @@ class Discriminator(nn.Module):
 class GeneratorLoss(nn.Module):
     """ Generator Loss log(D(G(x)))
     """
-    def __init__(self):
+    def __init__(self, mode='lsgan'):
         super(GeneratorLoss, self).__init__()
 
-        self.loss = nn.BCEWithLogitsLoss()
+        if mode == 'lsgan':
+            self.loss = nn.MSELoss()
+        else:
+            self.loss = nn.BCEWithLogitsLoss()
 
     def forward(self, pred_fake):
         return self.loss(pred_fake, torch.ones_like(pred_fake))
@@ -100,10 +103,13 @@ class GeneratorLoss(nn.Module):
 class DiscriminatorLoss(nn.Module):
     """ Discriminator Loss log(D(y) + log(1-D(G(x)))
     """
-    def __init__(self):
+    def __init__(self, mode='lsgan'):
         super(DiscriminatorLoss, self).__init__()
 
-        self.loss = nn.BCEWithLogitsLoss()
+        if mode == 'lsgan':
+            self.loss = nn.MSELoss()
+        else:
+            self.loss = nn.BCEWithLogitsLoss()
 
     def forward(self, pred_real, pred_fake):
         return (self.loss(pred_real, torch.ones_like(pred_real)) + self.loss(pred_fake, torch.zeros_like(pred_fake))) * 0.5
