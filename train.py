@@ -14,6 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch', type=int, default=1)
     parser.add_argument('--image_size', type=int, default=256)
     parser.add_argument('--channels', type=int, default=3)
+    parser.add_argument('--save_path', type=str)
 
     args = parser.parse_args()
 
@@ -37,3 +38,12 @@ if __name__ == '__main__':
         ep_loss_G /= len(dataloader)
         ep_loss_D /= len(dataloader)
         print(f'Epoch: {epoch+1} | Generator Loss:{ep_loss_G} | Discriminator Loss:{ep_loss_D}')
+
+    if args.save_path is not None:
+        state_dict = {
+            'epoch': epoch,
+            'model': model.state_dict(),
+            'size': args.image_size,
+            'ch': args.channels
+        }
+        torch.save(state_dict, args.save_path)
