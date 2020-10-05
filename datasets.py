@@ -47,3 +47,27 @@ class ImageDataset(data.Dataset):
 
     def __len__(self):
         return len(self.indices)
+
+class TestDataset(data.Dataset):
+
+    def __init__(self, path, image_size):
+
+        self.indices = [os.path.join(path, f) for f in os.listdir(path)] if os.path.isdir(path) else [path]
+
+        self.transform = transforms.Compose([
+            transforms.Resize(image_size),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5]*3, [0.5]*3)
+        ])
+
+    def __getitem__(self, idx):
+
+        image = Image.open(self.indices[idx])
+        return self.transform(image), os.path.basename(self.indices[idx])
+
+    def __len__(self):
+        return len(self.indices)
+
+    def inv_norm(self, t):
+        t.mul_(0.5).add_(0.5)
+        return t
